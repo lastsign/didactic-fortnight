@@ -12,3 +12,11 @@ profile.svg
 
 # Time trace
 trace.json
+
+Packages
+ServerPackages
+
+*.rbxlx
+*.rbxm
+*.rblx
+*.rblxm
