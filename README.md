@@ -20,21 +20,21 @@ For more help, check out [the Rojo documentation](https://rojo.space/docs).
 
 ```
 src/
-├── core/                 # Ядро проекта, общие модули
-├── features/             # Фичи проекта
-│   ├── app/              # Основная фича приложения
-│   ├── base/             # Базовая фича
-│   └── <feature>/        # Каждая фича — отдельная папка
-│       ├── classes/       # Классы фичи
-│       ├── ui/            # UI фичи
-│       │   ├── components/ # UI компоненты
-│       │   └── screens/    # Экраны
-│       ├── <Name>Client.luau  # Клиентская логика
-│       ├── <Name>Server.luau  # Серверная логика
-│       └── <Name>Slice.luau   # Стейт менеджмент
-├── game/                 # Игровые ассеты и конфиги
-├── services/             # Сервисы
-└── startup/              # Точки входа
+├── core/                 # Core modules, shared utilities
+├── features/             # Project features
+│   ├── app/              # Main app feature
+│   ├── base/             # Base feature
+│   └── <feature>/        # Each feature in its own folder
+│       ├── classes/       # Feature classes
+│       ├── ui/            # Feature UI
+│       │   ├── components/ # UI components
+│       │   └── screens/    # Screens
+│       ├── <Name>Client.luau  # Client-side logic
+│       ├── <Name>Server.luau  # Server-side logic
+│       └── <Name>Slice.luau   # State management
+├── game/                 # Game assets and configs
+├── services/             # Services
+└── startup/              # Entry points
     ├── Client.client.luau
     └── Server.server.luau
 ```
