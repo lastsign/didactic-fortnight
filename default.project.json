@@ -1,0 +1,71 @@
+{
+  "emitLegacyScripts": false,
+  "name": "didactic-fortnight",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "Source": {
+        "$className": "Folder",
+        "Features": {
+          "$className": "Folder"
+        },
+        "Core": {
+          "$className": "Folder"
+        },
+        "Game": {
+          "$className": "Folder"
+        },
+        "StartUp": {
+          "$className": "Folder",
+          "MountUI": {
+            "$path": "src/startup/MountUI.luau"
+          },
+          "Client": {
+            "$path": "src/startup/Client.client.luau"
+          }
+        },
+        "Services": {
+          "$className": "Folder",
+          "ExampleService": {
+            "$className": "Folder",
+            "ExampleServiceClient": {
+              "$path": "src/services/ExampleService/Client.luau"
+            },
+            "ExampleServiceUtils": {
+              "$path": "src/services/ExampleService/Utils.luau"
+            }
+          }
+        }
+      },
+      "Packages": {
+        "$path": "Packages"
+      }
+    },
+    "ServerScriptService": {
+      "Features": {
+        "$className": "Folder"
+      },
+      "Core": {
+        "$className": "Folder"
+      },
+      "Game": {
+        "$className": "Folder"
+      },
+      "StartUp": {
+        "$className": "Folder",
+        "Server": {
+          "$path": "src/startup/Server.server.luau"
+        }
+      },
+      "Services": {
+        "$className": "Folder",
+        "ExampleService": {
+          "$className": "Folder",
+          "ExampleServiceServer": {
+            "$path": "src/services/ExampleService/Server.luau"
+          }
+        }
+      }
+    }
+  }
+}
