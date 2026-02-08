@@ -43,7 +43,19 @@
     },
     "ServerScriptService": {
       "Features": {
-        "$className": "Folder"
+        "$className": "Folder",
+        "Plot": {
+          "$className": "Folder",
+          "PlotServiceServer": {
+            "$path": "src/features/plot/PlotServiceServer.luau"
+          }
+        },
+        "Spawn": {
+          "$className": "Folder",
+          "SpawnServiceServer": {
+            "$path": "src/features/spawn/SpawnServiceServer.luau"
+          }
+        }
       },
       "Core": {
         "$className": "Folder"

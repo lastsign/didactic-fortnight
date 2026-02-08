@@ -20,24 +20,39 @@ For more help, check out [the Rojo documentation](https://rojo.space/docs).
 
 ```
 src/
-├── core/                 # Core modules, shared utilities
-├── features/             # Project features
-│   ├── app/              # Main app feature
-│   ├── base/             # Base feature
+├── core/                 # Shared utilities
+│   ├── math/             # Math helpers
+│   ├── platform/         # Platform-specific code
+│   ├── ui/               # Shared UI (hooks, primitives)
+│   └── util/             # General utilities
+├── features/             # Game features
+│   ├── app/              # Main app / root UI
 │   └── <feature>/        # Each feature in its own folder
-│       ├── classes/       # Feature classes
-│       ├── ui/            # Feature UI
-│       │   ├── components/ # UI components
-│       │   └── screens/    # Screens
-│       ├── <Name>Client.luau  # Client-side logic
-│       ├── <Name>Server.luau  # Server-side logic
-│       └── <Name>Slice.luau   # State management
 ├── game/                 # Game assets and configs
-├── services/             # Services
+├── services/             # Example services (not for game code)
 └── startup/              # Entry points
     ├── Client.client.luau
     └── Server.server.luau
 ```
+
+### Feature structure
+
+Each feature lives in its own folder under `src/features/` and contains all related code:
+
+```
+features/
+└── plots/                         # Example: plots feature
+    ├── classes/                   # Feature-specific classes
+    │   └── PlotServer.luau       # Class (server-side)
+    ├── PlotServiceServer.luau    # Main service (server-side)
+    └── PlotTypes.luau            # Shared types
+```
+
+**Naming conventions:**
+- `<Name>ServiceServer.luau` — main service, server-side (`ServerScriptService`)
+- `<Name>ServiceClient.luau` — main service, client-side (`ReplicatedStorage`)
+- `classes/<Name>Server.luau` — class, server-side (`ServerScriptService`)
+- Other `.luau` files — shared (`ReplicatedStorage`)
 
 Each feature contains its own UI, classes, state and logic. This keeps all assets for a single feature consolidated in one place.
 
@@ -54,3 +69,43 @@ Generate `sourcemap.json`:
 ```bash
 rojo sourcemap -o sourcemap.json
 ```
+
+### Wally packages (external)
+
+Install packages and generate types for LSP:
+
+```bash
+wally install
+rojo sourcemap -o sourcemap.json
+wally-package-types -s sourcemap.json Packages/
+```
+
+Add a new package:
+1. Add to `wally.toml` under `[dependencies]` or `[server-dependencies]`
+2. Run the 3 commands above
+
+Usage in code:
+```luau
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Networker = require(ReplicatedStorage.Packages.Networker)
+local ServicePlayerData = require(ReplicatedStorage.Packages.ServicePlayerData)
+```
+
+### Internal modules (classes, services)
+
+Require via Rojo tree path (`ServerScriptService` or `ReplicatedStorage.Source`):
+
+```luau
+-- Server requiring another server module
+local ServerScriptService = game:GetService("ServerScriptService")
+local PlotServiceServer = require(ServerScriptService.Features.Plot.PlotServiceServer)
+
+-- Client requiring a shared module
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Source = ReplicatedStorage.Source
+local SomeUtils = require(Source.Core.SomeUtils)
+```
+
+File location determines Rojo placement:
+- `*Server*.luau` -> `ServerScriptService` (server only)
+- `*Client*.luau`, other `.luau` -> `ReplicatedStorage.Source` (shared/client)
