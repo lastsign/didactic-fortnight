@@ -30,14 +30,40 @@ function PlotServiceServer.init(self: PlotServiceServer)
 	self.playerData = ServicePlayerData.new(PLAYER_DATA_TEMPLATE :: PlayerData, self)
 
 	local template = ReplicatedStorage.Assets.PlotStorage["1"] :: Model
+	local templatePivot = template:GetPivot()
 
 	for _, plotSpawn in CollectionService:GetTagged("PlotSpawn") do
 		local index = plotSpawn:GetAttribute("Index") :: number
+		local targetPivot = plotSpawn:GetPivot()
+		local delta = targetPivot * templatePivot:Inverse()
 
-		-- Клонируем PlotStorage на каждый baseSpawn при старте
-		local plot = template:Clone()
+		-- Создаём новый Model (Instance.new) + клонируем детей по отдельности
+		-- Это гарантирует независимые Part-ы, без shared state от template:Clone()
+		local plot = Instance.new("Model")
+		plot.Name = "Plot_" .. tostring(index)
+
+		for _, child in template:GetChildren() do
+			local cloned = child:Clone()
+			-- Двигаем каждый BasePart по дельте и анкорим
+			if cloned:IsA("BasePart") then
+				cloned.CFrame = delta * cloned.CFrame
+				cloned.Anchored = true
+			end
+			-- Двигаем вложенные BasePart-ы (если child — Model/Folder)
+			for _, desc in cloned:GetDescendants() do
+				if desc:IsA("BasePart") then
+					desc.CFrame = delta * desc.CFrame
+					desc.Anchored = true
+				end
+			end
+			cloned.Parent = plot
+			-- Устанавливаем PrimaryPart
+			if template.PrimaryPart and child.Name == template.PrimaryPart.Name then
+				plot.PrimaryPart = cloned :: BasePart
+			end
+		end
+
 		plot.Parent = workspace
-		plot:PivotTo(plotSpawn:GetPivot())
 
 		self.plotSpawns[index] = {
 			part = plotSpawn,
