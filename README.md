@@ -28,6 +28,13 @@ src/
 ├── features/             # Game features
 │   ├── app/              # Main app / root UI
 │   └── <feature>/        # Each feature in its own folder
+│       ├── classes/       # Feature classes
+│       ├── ui/            # Feature UI
+│       │   ├── components/ # UI components
+│       │   └── screens/    # Screens
+│       ├── <Name>ServiceClient.luau  # Client-side logic
+│       ├── <Name>ServiceServer.luau  # Server-side logic
+│       └── <Name>ServiceSlice.luau   # State management
 ├── game/                 # Game assets and configs
 ├── services/             # Example services (not for game code)
 └── startup/              # Entry points
@@ -41,9 +48,13 @@ Each feature lives in its own folder under `src/features/` and contains all rela
 
 ```
 features/
-└── plots/                         # Example: plots feature
-    ├── classes/                   # Feature-specific classes
+└── plots/                        # Example: plots feature
+    ├── classes/                  # Feature-specific classes
     │   └── PlotServer.luau       # Class (server-side)
+    │       └── ui/               # Feature UI
+    │           ├── components/   # UI components
+    │           └── screens/      # Screens
+    ├── PlotServiceClient.luau    # Client-side logic
     ├── PlotServiceServer.luau    # Main service (server-side)
     └── PlotTypes.luau            # Shared types
 ```
