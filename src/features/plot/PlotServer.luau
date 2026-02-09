@@ -4,6 +4,8 @@ local Janitor = require(ReplicatedStorage.Packages.Janitor)
 
 local PlotTypes = require(ReplicatedStorage.Source.Features.Plot.PlotTypes)
 
+local OwnerBillboard = require(ReplicatedStorage.Source.Features.Billboard.OwnerBillboard)
+
 local CHAR_SPAWN_OFFSET = CFrame.new(0, 5, 0)
 local RESPAWN_DELAY = 5
 
@@ -18,6 +20,7 @@ function PlotServer.new(plotSpawn: PlotTypes.PlotSpawn, player: Player): Plot
 	self.janitor = Janitor.new()
 
 	self.plotModel = self:_buildPlotModel(plotSpawn)
+	self:_buildOwnerBillboard()
 	self:_initCharacterSpawning()
 
 	return self
@@ -54,6 +57,20 @@ function PlotServer._buildPlotModel(self: Plot, plotSpawn: PlotTypes.PlotSpawn):
 	self.janitor:Add(plot)
 
 	return plot
+end
+
+function PlotServer._buildOwnerBillboard(self: Plot)
+	local signBoard = self.plotModel:FindFirstChild("SignBoard", true)
+	if not signBoard then
+		warn("[PlotServer] SignBoard not found in plot template")
+		return
+	end
+
+	self.ownerBillboard = OwnerBillboard.new({
+		part = signBoard,
+		name = self.player.DisplayName,
+	})
+	self.janitor:Add(self.ownerBillboard, "destroy")
 end
 
 function PlotServer._initCharacterSpawning(self: Plot)

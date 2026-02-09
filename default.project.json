@@ -8,6 +8,15 @@
         "$className": "Folder",
         "Features": {
           "$className": "Folder",
+          "Billboard": {
+            "$className": "Folder",
+            "Billboard": {
+              "$path": "src/features/billboard/Billboard.luau"
+            },
+            "OwnerBillboard": {
+              "$path": "src/features/billboard/OwnerBillboard.luau"
+            }
+          },
           "Plot": {
             "$className": "Folder",
             "PlotTypes": {
