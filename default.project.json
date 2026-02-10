@@ -17,6 +17,21 @@
               "$path": "src/features/billboard/OwnerBillboard.luau"
             }
           },
+          "Hud": {
+            "$className": "Folder",
+            "HudApp": {
+              "$path": "src/features/hud/HudApp.luau"
+            }
+          },
+          "Playerdata": {
+            "$className": "Folder",
+            "PlayerDataServiceClient": {
+              "$path": "src/features/playerdata/PlayerDataServiceClient.luau"
+            },
+            "PlayerDataTypes": {
+              "$path": "src/features/playerdata/PlayerDataTypes.luau"
+            }
+          },
           "Plot": {
             "$className": "Folder",
             "PlotTypes": {
@@ -28,7 +43,10 @@
           "$className": "Folder"
         },
         "Game": {
-          "$className": "Folder"
+          "$className": "Folder",
+          "GameConfig": {
+            "$path": "src/game/GameConfig.luau"
+          }
         },
         "StartUp": {
           "$className": "Folder",
@@ -57,8 +75,17 @@
       }
     },
     "ServerScriptService": {
+      "ServerPackages": {
+        "$path": "ServerPackages"
+      },
       "Features": {
         "$className": "Folder",
+        "Playerdata": {
+          "$className": "Folder",
+          "PlayerDataServiceServer": {
+            "$path": "src/features/playerdata/PlayerDataServiceServer.luau"
+          }
+        },
         "Plot": {
           "$className": "Folder",
           "PlotServer": {

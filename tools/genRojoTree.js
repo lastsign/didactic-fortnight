@@ -72,6 +72,7 @@ const tree = {
     },
 
     ServerScriptService: {
+      ServerPackages: { $path: "ServerPackages" },
       Features: { $className: "Folder" },
       Core: { $className: "Folder" },
       Game: { $className: "Folder" },
