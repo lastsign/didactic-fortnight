@@ -6,9 +6,23 @@ export type Brainrot = {
 	zone: number,
 }
 
+export type RarityInfo = {
+	weight: number,
+	respawnTime: number,
+	color: Color3,
+}
+
 local GameConfig = {}
 
 GameConfig.PRESTIGE_BONUS_PER_LEVEL = 0.1
+
+GameConfig.RarityConfig = {
+	Common = { weight = 10, respawnTime = 30, color = Color3.fromRGB(200, 200, 200) },
+	Uncommon = { weight = 5, respawnTime = 45, color = Color3.fromRGB(0, 200, 0) },
+	Rare = { weight = 2, respawnTime = 60, color = Color3.fromRGB(0, 120, 255) },
+	Epic = { weight = 1, respawnTime = 90, color = Color3.fromRGB(180, 0, 255) },
+	Legendary = { weight = 0.5, respawnTime = 120, color = Color3.fromRGB(255, 200, 0) },
+} :: { [string]: RarityInfo }
 
 GameConfig.Brainrots = {
 	[1] = { id = 1, name = "Skibidi Toilet", rarity = "Common", incomePerSec = 1, zone = 1 },
@@ -23,6 +37,20 @@ GameConfig.Brainrots = {
 
 function GameConfig.getBrainrot(id: number): Brainrot?
 	return GameConfig.Brainrots[id]
+end
+
+function GameConfig.getBrainrotsForZone(zone: number): { Brainrot }
+	local result = {}
+	for _, brainrot in GameConfig.Brainrots do
+		if brainrot.zone == zone then
+			table.insert(result, brainrot)
+		end
+	end
+	return result
+end
+
+function GameConfig.getRarityInfo(rarity: string): RarityInfo?
+	return GameConfig.RarityConfig[rarity]
 end
 
 return GameConfig

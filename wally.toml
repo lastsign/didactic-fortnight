@@ -4,6 +4,10 @@ version = "0.1.0"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 
+[place]
+shared-packages = "game.ReplicatedStorage.Packages"
+server-packages = "game.ServerScriptService.ServerPackages"
+
 [dependencies]
 Promise = "evaera/promise@4.0.0"
 Networker = "leifstout/networker@0.3.1"
@@ -14,3 +18,7 @@ Janitor = "howmanysmall/janitor@1.16.3"
 
 [server-dependencies]
 ProfileService = "firebird702/profileservice@1.1.0"
+
+[dev-dependencies]
+Jest = "jsdotlua/jest@3.10.0"
+JestGlobals = "jsdotlua/jest-globals@3.10.0"

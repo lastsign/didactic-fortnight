@@ -15,8 +15,10 @@ trace.json
 
 Packages
 ServerPackages
+DevPackages
 
 *.rbxlx
 *.rbxm
 *.rblx
+*.rbxl
 *.rblxm

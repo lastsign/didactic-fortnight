@@ -1,6 +1,6 @@
 {
   "emitLegacyScripts": false,
-  "name": "didactic-fortnight",
+  "name": "didactic-fortnight-tests",
   "tree": {
     "$className": "DataModel",
     "ReplicatedStorage": {
@@ -56,31 +56,13 @@
           "GameConfig": {
             "$path": "src/game/GameConfig.luau"
           }
-        },
-        "StartUp": {
-          "$className": "Folder",
-          "MountUI": {
-            "$path": "src/startup/MountUI.luau"
-          },
-          "Client": {
-            "$path": "src/startup/Client.client.luau"
-          }
-        },
-        "Services": {
-          "$className": "Folder",
-          "ExampleService": {
-            "$className": "Folder",
-            "ExampleServiceClient": {
-              "$path": "src/services/ExampleService/Client.luau"
-            },
-            "ExampleServiceUtils": {
-              "$path": "src/services/ExampleService/Utils.luau"
-            }
-          }
         }
       },
       "Packages": {
         "$path": "Packages"
+      },
+      "DevPackages": {
+        "$path": "DevPackages"
       }
     },
     "ServerScriptService": {
@@ -117,26 +99,13 @@
           }
         }
       },
-      "Core": {
-        "$className": "Folder"
-      },
-      "Game": {
-        "$className": "Folder"
-      },
-      "StartUp": {
-        "$className": "Folder",
-        "Server": {
-          "$path": "src/startup/Server.server.luau"
-        }
-      },
-      "Services": {
-        "$className": "Folder",
-        "ExampleService": {
-          "$className": "Folder",
-          "ExampleServiceServer": {
-            "$path": "src/services/ExampleService/Server.luau"
-          }
-        }
+      "RunTests": {
+        "$path": "scripts/run-tests.server.luau"
+      }
+    },
+    "TestService": {
+      "Tests": {
+        "$path": "src/__tests__"
       }
     }
   }

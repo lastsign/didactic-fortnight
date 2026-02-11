@@ -120,3 +120,62 @@ local SomeUtils = require(Source.Core.SomeUtils)
 File location determines Rojo placement:
 - `*Server*.luau` -> `ServerScriptService` (server only)
 - `*Client*.luau`, other `.luau` -> `ReplicatedStorage.Source` (shared/client)
+
+## Testing
+
+Unit tests run on [Jest Lua](https://github.com/jsdotlua/jest-lua) (v3.10.0) — a Luau port of the Jest framework by jsdotlua.
+
+### Setup
+
+Jest is installed as a wally dev-dependency. After cloning, run:
+
+```bash
+wally install
+```
+
+This creates `DevPackages/` with Jest and JestGlobals.
+
+### Running tests
+
+**Option A — via `run-in-roblox` (CI / headless):**
+
+```bash
+rojo build test.project.json -o test-place.rbxl
+run-in-roblox --place test-place.rbxl --script scripts/run-tests.server.luau
+```
+
+**Option B — via Roblox Studio:**
+
+1. Build the test place: `rojo build test.project.json -o test-place.rbxl`
+2. Open `test-place.rbxl` in Studio
+3. Press Play — the `RunTests` script in ServerScriptService executes automatically
+4. Check the Output window for test results
+
+### Test files
+
+| Path | Purpose |
+|------|---------|
+| `src/__tests__/*.spec.luau` | Test files (Jest `describe`/`it`/`expect`) |
+| `src/__tests__/jest.config.luau` | Jest configuration (`testMatch = {"**/*.spec"}`) |
+| `scripts/run-tests.server.luau` | Test runner entry point |
+| `test.project.json` | Rojo project for tests (separate from `default.project.json`) |
+
+### Writing a test
+
+```luau
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local JestGlobals = require(ReplicatedStorage.DevPackages.JestGlobals)
+local describe = JestGlobals.describe
+local it = JestGlobals.it
+local expect = JestGlobals.expect
+
+local GameConfig = require(ReplicatedStorage.Source.Game.GameConfig)
+
+describe("GameConfig", function()
+    it("should return brainrot by id", function()
+        local brainrot = GameConfig.getBrainrot(1)
+        expect(brainrot).toBeDefined()
+        expect(brainrot.name).toBe("Skibidi Toilet")
+    end)
+end)
+```

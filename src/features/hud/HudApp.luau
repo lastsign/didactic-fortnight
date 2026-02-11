@@ -16,31 +16,31 @@ end
 
 local function StatLabel(props: { icon: string, text: string, order: number })
 	return React.createElement("Frame", {
-		Size = UDim2.new(1, 0, 0, 32),
+		Size = UDim2.fromScale(1, 0.18),
 		BackgroundColor3 = Color3.fromRGB(30, 30, 30),
 		BackgroundTransparency = 0.3,
 		LayoutOrder = props.order,
 	}, {
-		Corner = React.createElement("UICorner", { CornerRadius = UDim.new(0, 8) }),
+		Corner = React.createElement("UICorner", { CornerRadius = UDim.new(0.25, 0) }),
 		Padding = React.createElement("UIPadding", {
-			PaddingLeft = UDim.new(0, 10),
-			PaddingRight = UDim.new(0, 10),
+			PaddingLeft = UDim.new(0.05, 0),
+			PaddingRight = UDim.new(0.05, 0),
 		}),
 		Icon = React.createElement("TextLabel", {
-			Size = UDim2.new(0, 24, 1, 0),
+			Size = UDim2.fromScale(0.15, 1),
 			BackgroundTransparency = 1,
 			Text = props.icon,
-			TextSize = 18,
+			TextScaled = true,
 			TextXAlignment = Enum.TextXAlignment.Left,
 		}),
 		Label = React.createElement("TextLabel", {
-			Size = UDim2.new(1, -30, 1, 0),
-			Position = UDim2.new(0, 30, 0, 0),
+			Size = UDim2.fromScale(0.8, 1),
+			Position = UDim2.fromScale(0.2, 0),
 			BackgroundTransparency = 1,
 			Text = props.text,
 			TextColor3 = Color3.fromRGB(255, 255, 255),
 			TextStrokeTransparency = 0.5,
-			TextSize = 16,
+			TextScaled = true,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			FontFace = FONT_MEDIUM,
 		}),
@@ -92,21 +92,25 @@ local function HudApp(props: Props)
 	end, {})
 
 	return React.createElement("Frame", {
-		Size = UDim2.new(0, 200, 0, 160),
-		Position = UDim2.new(0, 12, 0, 12),
+		Size = UDim2.fromScale(0.13, 0.22),
+		Position = UDim2.fromScale(0.005, 0.015),
 		BackgroundTransparency = 1,
 	}, {
+		SizeConstraint = React.createElement("UISizeConstraint", {
+			MaxSize = Vector2.new(220, 180),
+			MinSize = Vector2.new(120, 100),
+		}),
 		Layout = React.createElement("UIListLayout", {
 			SortOrder = Enum.SortOrder.LayoutOrder,
-			Padding = UDim.new(0, 6),
+			Padding = UDim.new(0.02, 0),
 		}),
 		Title = React.createElement("TextLabel", {
-			Size = UDim2.new(1, 0, 0, 24),
+			Size = UDim2.fromScale(1, 0.12),
 			BackgroundTransparency = 1,
 			Text = "STATS",
 			TextColor3 = Color3.fromRGB(255, 255, 255),
 			TextStrokeTransparency = 0.3,
-			TextSize = 14,
+			TextScaled = true,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			FontFace = FONT,
 			LayoutOrder = 0,

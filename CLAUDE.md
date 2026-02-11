@@ -75,5 +75,52 @@ Server startup requires services from `ServerScriptService.Services` and calls `
 
 - `Packages/` — shared dependencies (React, ReactRoblox, Promise, Networker)
 - `ServerPackages/` — server-only dependencies (ProfileService)
+- `DevPackages/` — dev dependencies (Jest, JestGlobals)
 
-Both directories are gitignored; run `wally install` after cloning.
+All three directories are gitignored; run `wally install` after cloning.
+
+## Testing
+
+Unit tests use **[Jest Lua](https://github.com/jsdotlua/jest-lua)** (v3.10.0) — the Luau port of Jest by jsdotlua.
+
+### Running Tests
+
+```bash
+# Build the test place
+rojo build test.project.json -o test-place.rbxl
+
+# Run tests via run-in-roblox
+run-in-roblox --place test-place.rbxl --script scripts/run-tests.server.luau
+```
+
+Alternatively, open `test-place.rbxl` in Studio — the `RunTests` script in `ServerScriptService` will execute automatically.
+
+### Test Structure
+
+- **Test files:** `src/__tests__/*.spec.luau`
+- **Config:** `src/__tests__/jest.config.luau`
+- **Runner:** `scripts/run-tests.server.luau`
+- **Rojo project:** `test.project.json` (separate from auto-generated `default.project.json`)
+
+### Writing Tests
+
+```luau
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local JestGlobals = require(ReplicatedStorage.DevPackages.JestGlobals)
+local describe = JestGlobals.describe
+local it = JestGlobals.it
+local expect = JestGlobals.expect
+
+describe("MyModule", function()
+    it("should do something", function()
+        expect(1 + 1).toBe(2)
+    end)
+end)
+```
+
+### Test Coverage Guidelines
+
+Every feature should have tests covering:
+- **GameConfig/data tables** — completeness, valid values, relationships
+- **Pure logic** — calculations, algorithms, utility functions
+- **Service API** — public methods behavior (may need mocking for Roblox services)
