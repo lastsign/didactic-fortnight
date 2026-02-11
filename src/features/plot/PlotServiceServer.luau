@@ -5,23 +5,20 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Networker = require(ReplicatedStorage.Packages.Networker)
 local ServicePlayerData = require(ReplicatedStorage.Packages.ServicePlayerData)
 
-type PlotSpawn = {
-	part: Model,
-	index: number,
-	plot: Model?,
-	owner: Player?,
-}
+local PlotTypes = require(ReplicatedStorage.Source.Features.Plot.PlotTypes)
+local PlotServer = require(script.Parent.PlotServer)
 
 type PlayerData = {
-	plotSpawn: PlotSpawn?,
+	plot: PlotServer.Plot?,
 }
 
 local PLAYER_DATA_TEMPLATE: PlayerData = {
-	plotSpawn = nil,
+	plot = nil,
 }
 
 local PlotServiceServer = {}
-PlotServiceServer.plotSpawns = {} :: { [number]: PlotSpawn }
+PlotServiceServer.plotSpawns = {} :: { [number]: PlotTypes.PlotSpawn }
+PlotServiceServer.claimedSpawns = {} :: { [number]: boolean }
 PlotServiceServer.networker = (nil :: any) :: Networker.Server
 PlotServiceServer.playerData = (nil :: any) :: ServicePlayerData.ServicePlayerData<PlayerData>
 
@@ -29,21 +26,11 @@ function PlotServiceServer.init(self: PlotServiceServer)
 	self.networker = Networker.server.new("PlotService", self, {})
 	self.playerData = ServicePlayerData.new(PLAYER_DATA_TEMPLATE :: PlayerData, self)
 
-	local template = ReplicatedStorage.Assets.PlotStorage["1"] :: Model
-
 	for _, plotSpawn in CollectionService:GetTagged("PlotSpawn") do
 		local index = plotSpawn:GetAttribute("Index") :: number
-
-		-- Клонируем PlotStorage на каждый baseSpawn при старте
-		local plot = template:Clone()
-		plot.Parent = workspace
-		plot:PivotTo(plotSpawn:GetPivot())
-
 		self.plotSpawns[index] = {
 			part = plotSpawn,
 			index = index,
-			plot = plot,
-			owner = nil,
 		}
 	end
 
@@ -55,54 +42,47 @@ function PlotServiceServer.init(self: PlotServiceServer)
 	end
 end
 
-function PlotServiceServer._claimPlot(self: PlotServiceServer, player: Player): PlotSpawn?
-	-- Если игрок уже занял плот
-	for _, plotSpawn in self.plotSpawns do
-		if plotSpawn.owner == player then
-			return plotSpawn
-		end
-	end
-
-	-- Найти свободный
-	for _, plotSpawn in self.plotSpawns do
-		if not plotSpawn.owner then
-			plotSpawn.owner = player
-			return plotSpawn
+function PlotServiceServer._claimPlot(self: PlotServiceServer, player: Player): PlotServer.Plot?
+	-- Найти свободный spawn
+	for index, plotSpawn in self.plotSpawns do
+		if not self.claimedSpawns[index] then
+			self.claimedSpawns[index] = true
+			local plot = PlotServer.new(plotSpawn, player)
+			return plot
 		end
 	end
 
 	return nil
 end
 
-function PlotServiceServer.getPlotSpawn(self: PlotServiceServer, player: Player): PlotSpawn?
-	for _, plotSpawn in self.plotSpawns do
-		if plotSpawn.owner == player then
-			return plotSpawn
-		end
+function PlotServiceServer.getPlot(self: PlotServiceServer, player: Player): PlotServer.Plot?
+	local data = self.playerData:get(player)
+	if data then
+		return data.plot
 	end
 	return nil
 end
 
 -- Вызывается автоматически ServicePlayerData при PlayerAdded
 function PlotServiceServer.playerAdded(self: PlotServiceServer, player: Player, data: PlayerData)
-	local plotSpawn = self:_claimPlot(player)
-	if not plotSpawn then
+	local plot = self:_claimPlot(player)
+	if not plot then
 		player:Kick("Сервер полный!")
 		return
 	end
 
-	data.plotSpawn = plotSpawn
+	data.plot = plot
 end
 
 -- Вызывается автоматически ServicePlayerData при PlayerRemoving
 function PlotServiceServer.playerRemoving(self: PlotServiceServer, _player: Player, data: PlayerData)
-	if data.plotSpawn then
-		data.plotSpawn.owner = nil
-		data.plotSpawn = nil
+	if data.plot then
+		local index = data.plot.index
+		data.plot:destroy()
+		self.claimedSpawns[index] = nil
+		data.plot = nil
 	end
 end
-
-export type PlotSpawn = PlotSpawn
 
 type PlotServiceServer = typeof(PlotServiceServer)
 

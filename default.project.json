@@ -7,7 +7,22 @@
       "Source": {
         "$className": "Folder",
         "Features": {
-          "$className": "Folder"
+          "$className": "Folder",
+          "Billboard": {
+            "$className": "Folder",
+            "Billboard": {
+              "$path": "src/features/billboard/Billboard.luau"
+            },
+            "OwnerBillboard": {
+              "$path": "src/features/billboard/OwnerBillboard.luau"
+            }
+          },
+          "Plot": {
+            "$className": "Folder",
+            "PlotTypes": {
+              "$path": "src/features/plot/PlotTypes.luau"
+            }
+          }
         },
         "Core": {
           "$className": "Folder"
@@ -46,6 +61,9 @@
         "$className": "Folder",
         "Plot": {
           "$className": "Folder",
+          "PlotServer": {
+            "$path": "src/features/plot/PlotServer.luau"
+          },
           "PlotServiceServer": {
             "$path": "src/features/plot/PlotServiceServer.luau"
           }

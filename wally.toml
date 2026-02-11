@@ -10,6 +10,7 @@ Networker = "leifstout/networker@0.3.1"
 ServicePlayerData = "leifstout/serviceplayerdata@0.1.2"
 React = "jsdotlua/react@17.2.1"
 ReactRoblox = "jsdotlua/react-roblox@17.2.1"
+Janitor = "howmanysmall/janitor@1.16.3"
 
 [server-dependencies]
 ProfileService = "firebird702/profileservice@1.1.0"

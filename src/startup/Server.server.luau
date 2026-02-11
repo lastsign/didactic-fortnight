@@ -5,5 +5,5 @@ local PlotServiceServer = require(ServerScriptService.Features.Plot.PlotServiceS
 local SpawnServiceServer = require(ServerScriptService.Features.Spawn.SpawnServiceServer)
 
 ExampleServiceServer:init()
-PlotServiceServer:init() -- Сначала плоты — клеймим до спавна
-SpawnServiceServer:init()
+SpawnServiceServer:init() -- CharacterAutoLoads = false до спавна
+PlotServiceServer:init() -- Клеймит плоты и спавнит персонажей
