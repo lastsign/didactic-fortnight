@@ -16,8 +16,12 @@ function PlayerDataServiceClient.init(self: PlayerDataServiceClient)
 	self.networker = Networker.client.new("PlayerDataService", self)
 end
 
-function PlayerDataServiceClient.depositBrainrots(self: PlayerDataServiceClient)
-	self.networker:fire("depositBrainrots")
+function PlayerDataServiceClient.depositOneBrainrot(self: PlayerDataServiceClient)
+	self.networker:fire("depositOneBrainrot")
+end
+
+function PlayerDataServiceClient.upgradeBrainrot(self: PlayerDataServiceClient, slot: number)
+	self.networker:fire("upgradeBrainrot", slot)
 end
 
 export type PlayerDataServiceClient = typeof(PlayerDataServiceClient)

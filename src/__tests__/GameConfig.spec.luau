@@ -236,4 +236,83 @@ describe("GameConfig", function()
 			end
 		end)
 	end)
+
+	describe("Upgrade constants", function()
+		it("should have valid upgrade constants", function()
+			expect(GameConfig.UPGRADE_MAX_LEVEL).toBeDefined()
+			expect(GameConfig.UPGRADE_MAX_LEVEL > 1).toBe(true)
+			expect(GameConfig.UPGRADE_BASE_COST > 0).toBe(true)
+			expect(GameConfig.UPGRADE_COST_MULTIPLIER > 1).toBe(true)
+			expect(GameConfig.UPGRADE_INCOME_MULTIPLIER > 0).toBe(true)
+		end)
+	end)
+
+	describe("getUpgradeCost", function()
+		it("should return a positive cost for valid brainrot", function()
+			local cost = GameConfig.getUpgradeCost(1, 1)
+			expect(cost > 0).toBe(true)
+		end)
+
+		it("should increase cost with level", function()
+			local cost1 = GameConfig.getUpgradeCost(1, 1)
+			local cost2 = GameConfig.getUpgradeCost(1, 2)
+			local cost3 = GameConfig.getUpgradeCost(1, 3)
+
+			expect(cost2 > cost1).toBe(true)
+			expect(cost3 > cost2).toBe(true)
+		end)
+
+		it("should scale with brainrot income", function()
+			-- Higher income brainrot should cost more to upgrade
+			local costLow = GameConfig.getUpgradeCost(1, 1) -- income=1
+			local costHigh = GameConfig.getUpgradeCost(8, 1) -- income=100
+
+			expect(costHigh > costLow).toBe(true)
+		end)
+
+		it("should return math.huge for invalid brainrot", function()
+			local cost = GameConfig.getUpgradeCost(999, 1)
+			expect(cost).toBe(math.huge)
+		end)
+
+		it("should match formula: floor(BASE_COST * income * MULTIPLIER^(level-1))", function()
+			local brainrot = GameConfig.getBrainrot(1)
+			local baseCost = GameConfig.UPGRADE_BASE_COST * brainrot.incomePerSec
+
+			for level = 1, 5 do
+				local expected = math.floor(baseCost * (GameConfig.UPGRADE_COST_MULTIPLIER ^ (level - 1)))
+				expect(GameConfig.getUpgradeCost(1, level)).toBe(expected)
+			end
+		end)
+	end)
+
+	describe("getIncomeForLevel", function()
+		it("should return base income at level 1", function()
+			local brainrot = GameConfig.getBrainrot(1)
+			local income = GameConfig.getIncomeForLevel(1, 1)
+			expect(income).toBe(brainrot.incomePerSec)
+		end)
+
+		it("should increase income with level", function()
+			local income1 = GameConfig.getIncomeForLevel(1, 1)
+			local income2 = GameConfig.getIncomeForLevel(1, 2)
+			local income5 = GameConfig.getIncomeForLevel(1, 5)
+
+			expect(income2 > income1).toBe(true)
+			expect(income5 > income2).toBe(true)
+		end)
+
+		it("should return 0 for invalid brainrot", function()
+			expect(GameConfig.getIncomeForLevel(999, 1)).toBe(0)
+		end)
+
+		it("should match formula: income * (1 + (level-1) * MULTIPLIER)", function()
+			local brainrot = GameConfig.getBrainrot(2) -- Sigma Cat, income=2
+
+			for level = 1, 5 do
+				local expected = brainrot.incomePerSec * (1 + (level - 1) * GameConfig.UPGRADE_INCOME_MULTIPLIER)
+				expect(GameConfig.getIncomeForLevel(2, level)).toBe(expected)
+			end
+		end)
+	end)
 end)

@@ -16,6 +16,11 @@ local GameConfig = {}
 
 GameConfig.PRESTIGE_BONUS_PER_LEVEL = 0.1
 
+GameConfig.UPGRADE_MAX_LEVEL = 10
+GameConfig.UPGRADE_BASE_COST = 50
+GameConfig.UPGRADE_COST_MULTIPLIER = 1.5
+GameConfig.UPGRADE_INCOME_MULTIPLIER = 0.5
+
 GameConfig.RarityConfig = {
 	Common = { weight = 10, respawnTime = 30, color = Color3.fromRGB(200, 200, 200) },
 	Uncommon = { weight = 5, respawnTime = 45, color = Color3.fromRGB(0, 200, 0) },
@@ -51,6 +56,25 @@ end
 
 function GameConfig.getRarityInfo(rarity: string): RarityInfo?
 	return GameConfig.RarityConfig[rarity]
+end
+
+function GameConfig.getUpgradeCost(brainrotId: number, currentLevel: number): number
+	local brainrot = GameConfig.getBrainrot(brainrotId)
+	if not brainrot then
+		return math.huge
+	end
+
+	local baseCost = GameConfig.UPGRADE_BASE_COST * brainrot.incomePerSec
+	return math.floor(baseCost * (GameConfig.UPGRADE_COST_MULTIPLIER ^ (currentLevel - 1)))
+end
+
+function GameConfig.getIncomeForLevel(brainrotId: number, level: number): number
+	local brainrot = GameConfig.getBrainrot(brainrotId)
+	if not brainrot then
+		return 0
+	end
+
+	return brainrot.incomePerSec * (1 + (level - 1) * GameConfig.UPGRADE_INCOME_MULTIPLIER)
 end
 
 return GameConfig

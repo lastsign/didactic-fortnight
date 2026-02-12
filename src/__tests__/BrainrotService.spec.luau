@@ -43,7 +43,9 @@ beforeEach(function()
 	BrainrotServiceServer.spawnPoints = {}
 	BrainrotServiceServer.activeModels = {}
 	BrainrotServiceServer.pickupDebounce = {}
+	BrainrotServiceServer.modelTemplates = {}
 	BrainrotServiceServer.playerDataService = mockPlayerDataService
+	BrainrotServiceServer.plotService = nil
 end)
 
 afterEach(function()
@@ -183,22 +185,26 @@ describe("_createBrainrotModel", function()
 		expect(CollectionService:HasTag(model, "Brainrot")).toBe(true)
 	end)
 
-	it("should have BillboardGui on the part", function()
+	it("should have SurfaceGui billboard on the model", function()
 		local model = BrainrotServiceServer:_createBrainrotModel(1, CFrame.new(0, 5, 0))
 		trackInstance(model)
 
-		local billboard = model.PrimaryPart:FindFirstChildOfClass("BillboardGui")
-		expect(billboard).toBeDefined()
-		expect(billboard.Name).toBe("BrainrotBillboard")
+		local billboardPart = model:FindFirstChild("BillboardPart")
+		expect(billboardPart).toBeDefined()
+
+		local surfaceGui = billboardPart:FindFirstChildOfClass("SurfaceGui")
+		expect(surfaceGui).toBeDefined()
+		expect(surfaceGui.Name).toBe("BrainrotBillboard")
 	end)
 
-	it("should have name and rarity labels in BillboardGui", function()
+	it("should have name and rarity labels in SurfaceGui", function()
 		local model = BrainrotServiceServer:_createBrainrotModel(1, CFrame.new(0, 5, 0))
 		trackInstance(model)
 
-		local billboard = model.PrimaryPart:FindFirstChildOfClass("BillboardGui")
-		local nameLabel = billboard:FindFirstChild("NameLabel")
-		local rarityLabel = billboard:FindFirstChild("RarityLabel")
+		local billboardPart = model:FindFirstChild("BillboardPart")
+		local surfaceGui = billboardPart:FindFirstChild("BrainrotBillboard")
+		local nameLabel = surfaceGui:FindFirstChild("NameLabel")
+		local rarityLabel = surfaceGui:FindFirstChild("RarityLabel")
 
 		expect(nameLabel).toBeDefined()
 		expect(nameLabel.Text).toBe("Skibidi Toilet")

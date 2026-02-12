@@ -199,7 +199,7 @@ end)
 ------------------------------------------------------------------------
 
 describe("addBrainrotToInventory", function()
-	it("should add brainrot and assign slot 1", function()
+	it("should add brainrot and assign slot 1 with level 1", function()
 		PlayerDataServiceServer.profiles[mockPlayer] = createMockProfile()
 		local result = PlayerDataServiceServer:addBrainrotToInventory(mockPlayer, 1)
 
@@ -208,6 +208,7 @@ describe("addBrainrotToInventory", function()
 		expect(#data.Inventory).toBe(1)
 		expect(data.Inventory[1].id).toBe(1)
 		expect(data.Inventory[1].slot).toBe(1)
+		expect(data.Inventory[1].level).toBe(1)
 	end)
 
 	it("should assign sequential slots", function()
@@ -559,5 +560,170 @@ describe("_syncToClient", function()
 	it("should do nothing if no profile", function()
 		PlayerDataServiceServer:_syncToClient(mockPlayer)
 		expect(#mockNetworker.calls).toBe(0)
+	end)
+end)
+
+------------------------------------------------------------------------
+-- depositOneBrainrot
+------------------------------------------------------------------------
+
+describe("depositOneBrainrot", function()
+	it("should transfer exactly one brainrot from carry to inventory", function()
+		PlayerDataServiceServer.profiles[mockPlayer] = createMockProfile()
+		PlayerDataServiceServer.carryInventory[mockPlayer] = { 1, 2, 3 }
+
+		PlayerDataServiceServer:depositOneBrainrot(mockPlayer)
+
+		local data = PlayerDataServiceServer:getData(mockPlayer)
+		expect(#data.Inventory).toBe(1)
+		expect(data.Inventory[1].id).toBe(1)
+		expect(#PlayerDataServiceServer:getCarryInventory(mockPlayer)).toBe(2)
+	end)
+
+	it("should deposit first brainrot from carry (FIFO)", function()
+		PlayerDataServiceServer.profiles[mockPlayer] = createMockProfile()
+		PlayerDataServiceServer.carryInventory[mockPlayer] = { 5, 3, 1 }
+
+		PlayerDataServiceServer:depositOneBrainrot(mockPlayer)
+
+		local data = PlayerDataServiceServer:getData(mockPlayer)
+		expect(data.Inventory[1].id).toBe(5)
+
+		local carry = PlayerDataServiceServer:getCarryInventory(mockPlayer)
+		expect(carry[1]).toBe(3)
+		expect(carry[2]).toBe(1)
+	end)
+
+	it("should do nothing if carry is empty", function()
+		PlayerDataServiceServer.profiles[mockPlayer] = createMockProfile()
+		PlayerDataServiceServer.carryInventory[mockPlayer] = {}
+
+		PlayerDataServiceServer:depositOneBrainrot(mockPlayer)
+
+		expect(#PlayerDataServiceServer:getData(mockPlayer).Inventory).toBe(0)
+	end)
+
+	it("should do nothing if inventory is full", function()
+		PlayerDataServiceServer.profiles[mockPlayer] = createMockProfile({ PlotCapacity = 1 })
+		PlayerDataServiceServer.carryInventory[mockPlayer] = { 1, 2 }
+
+		PlayerDataServiceServer:depositOneBrainrot(mockPlayer)
+		PlayerDataServiceServer:depositOneBrainrot(mockPlayer)
+
+		local data = PlayerDataServiceServer:getData(mockPlayer)
+		expect(#data.Inventory).toBe(1)
+		expect(#PlayerDataServiceServer:getCarryInventory(mockPlayer)).toBe(1)
+	end)
+
+	it("should set level = 1 on deposited brainrot", function()
+		PlayerDataServiceServer.profiles[mockPlayer] = createMockProfile()
+		PlayerDataServiceServer.carryInventory[mockPlayer] = { 1 }
+
+		PlayerDataServiceServer:depositOneBrainrot(mockPlayer)
+
+		local data = PlayerDataServiceServer:getData(mockPlayer)
+		expect(data.Inventory[1].level).toBe(1)
+	end)
+end)
+
+------------------------------------------------------------------------
+-- upgradeBrainrot
+------------------------------------------------------------------------
+
+describe("upgradeBrainrot", function()
+	it("should increase level and deduct coins", function()
+		local cost = GameConfig.getUpgradeCost(1, 1)
+		PlayerDataServiceServer.profiles[mockPlayer] = createMockProfile({
+			Coins = cost + 100,
+			Inventory = { { id = 1, slot = 1, level = 1 } },
+		})
+
+		PlayerDataServiceServer:upgradeBrainrot(mockPlayer, 1)
+
+		local data = PlayerDataServiceServer:getData(mockPlayer)
+		expect(data.Inventory[1].level).toBe(2)
+		expect(data.Coins).toBe(100)
+	end)
+
+	it("should not upgrade if not enough coins", function()
+		PlayerDataServiceServer.profiles[mockPlayer] = createMockProfile({
+			Coins = 0,
+			Inventory = { { id = 1, slot = 1, level = 1 } },
+		})
+
+		PlayerDataServiceServer:upgradeBrainrot(mockPlayer, 1)
+
+		local data = PlayerDataServiceServer:getData(mockPlayer)
+		expect(data.Inventory[1].level).toBe(1)
+	end)
+
+	it("should not upgrade past max level", function()
+		PlayerDataServiceServer.profiles[mockPlayer] = createMockProfile({
+			Coins = 999999,
+			Inventory = { { id = 1, slot = 1, level = GameConfig.UPGRADE_MAX_LEVEL } },
+		})
+
+		PlayerDataServiceServer:upgradeBrainrot(mockPlayer, 1)
+
+		local data = PlayerDataServiceServer:getData(mockPlayer)
+		expect(data.Inventory[1].level).toBe(GameConfig.UPGRADE_MAX_LEVEL)
+	end)
+
+	it("should do nothing for non-existent slot", function()
+		PlayerDataServiceServer.profiles[mockPlayer] = createMockProfile({
+			Coins = 999999,
+			Inventory = { { id = 1, slot = 1, level = 1 } },
+		})
+
+		PlayerDataServiceServer:upgradeBrainrot(mockPlayer, 99)
+
+		local data = PlayerDataServiceServer:getData(mockPlayer)
+		expect(data.Inventory[1].level).toBe(1)
+	end)
+
+	it("should recalculate income after upgrade", function()
+		local cost = GameConfig.getUpgradeCost(1, 1)
+		PlayerDataServiceServer.profiles[mockPlayer] = createMockProfile({
+			Coins = cost,
+			Inventory = { { id = 1, slot = 1, level = 1 } },
+		})
+
+		PlayerDataServiceServer:upgradeBrainrot(mockPlayer, 1)
+
+		local call = mockNetworker:getLastCall("incomePerSec")
+		expect(call).toBeDefined()
+		local expectedIncome = math.floor(GameConfig.getIncomeForLevel(1, 2))
+		expect(call.value).toBe(expectedIncome)
+	end)
+end)
+
+------------------------------------------------------------------------
+-- getInventoryEntry
+------------------------------------------------------------------------
+
+describe("getInventoryEntry", function()
+	it("should return entry by slot", function()
+		PlayerDataServiceServer.profiles[mockPlayer] = createMockProfile({
+			Inventory = { { id = 1, slot = 1, level = 1 }, { id = 2, slot = 2, level = 3 } },
+		})
+
+		local entry = PlayerDataServiceServer:getInventoryEntry(mockPlayer, 2)
+		expect(entry).toBeDefined()
+		expect(entry.id).toBe(2)
+		expect(entry.level).toBe(3)
+	end)
+
+	it("should return nil for non-existent slot", function()
+		PlayerDataServiceServer.profiles[mockPlayer] = createMockProfile({
+			Inventory = { { id = 1, slot = 1, level = 1 } },
+		})
+
+		local entry = PlayerDataServiceServer:getInventoryEntry(mockPlayer, 99)
+		expect(entry).toBeNil()
+	end)
+
+	it("should return nil if no profile", function()
+		local entry = PlayerDataServiceServer:getInventoryEntry(mockPlayer, 1)
+		expect(entry).toBeNil()
 	end)
 end)

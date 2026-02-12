@@ -20,6 +20,9 @@ function PlotServer.new(plotSpawn: PlotTypes.PlotSpawn, player: Player): Plot
 	self.janitor = Janitor.new()
 
 	self.plotModel = self:_buildPlotModel(plotSpawn)
+	self.slotPositions = {} :: { [number]: BasePart }
+	self.placedModels = {} :: { [number]: Model }
+	self:_cacheSlotPositions()
 	self:_buildOwnerBillboard()
 	self:_initCharacterSpawning()
 
@@ -57,6 +60,52 @@ function PlotServer._buildPlotModel(self: Plot, plotSpawn: PlotTypes.PlotSpawn):
 	self.janitor:Add(plot)
 
 	return plot
+end
+
+function PlotServer._cacheSlotPositions(self: Plot)
+	for _, child in self.plotModel:GetDescendants() do
+		if child:IsA("BasePart") and child.Name == "PlotSlot" then
+			local slotNum = child:GetAttribute("Slot") :: number
+			if slotNum then
+				self.slotPositions[slotNum] = child
+			end
+		end
+	end
+end
+
+function PlotServer.getSlotPart(self: Plot, slot: number): BasePart?
+	return self.slotPositions[slot]
+end
+
+function PlotServer.placeModelAtSlot(self: Plot, slot: number, model: Model)
+	if self.placedModels[slot] then
+		self.placedModels[slot]:Destroy()
+	end
+
+	local slotPart = self.slotPositions[slot]
+	if not slotPart then
+		warn("[PlotServer] No slot position found for slot:", slot)
+		return
+	end
+
+	-- Рассчитываем позицию: модель ставится НА ВЕРХ слота
+	local slotTop = slotPart.CFrame * CFrame.new(0, slotPart.Size.Y / 2, 0)
+
+	-- Высота модели от пивота до низа
+	local _, modelSize = model:GetBoundingBox()
+	local modelHalfHeight = modelSize.Y / 2
+
+	model:PivotTo(slotTop * CFrame.new(0, modelHalfHeight, 0))
+	model.Parent = self.plotModel
+	self.placedModels[slot] = model
+end
+
+function PlotServer.removeModelAtSlot(self: Plot, slot: number)
+	local model = self.placedModels[slot]
+	if model then
+		model:Destroy()
+		self.placedModels[slot] = nil
+	end
 end
 
 function PlotServer._buildOwnerBillboard(self: Plot)
@@ -102,6 +151,8 @@ export type Plot = typeof(setmetatable({} :: {
 	index: number,
 	plotModel: Model,
 	janitor: Janitor.Janitor,
+	slotPositions: { [number]: BasePart },
+	placedModels: { [number]: Model },
 }, PlotServer))
 
 return PlotServer

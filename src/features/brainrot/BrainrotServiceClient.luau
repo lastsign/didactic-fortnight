@@ -2,6 +2,7 @@ local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 
 local PlayerDataServiceClient = require(ReplicatedStorage.Source.Features.Playerdata.PlayerDataServiceClient)
 
@@ -10,11 +11,12 @@ local DEPOSIT_TAG = "DepositZone"
 local FLOAT_SPEED = 2
 local FLOAT_AMPLITUDE = 0.5
 local SPIN_SPEED = 1
-local DEPOSIT_DEBOUNCE = 1
+local DEPOSIT_DEBOUNCE = 0.5
 
 local BrainrotServiceClient = {}
 BrainrotServiceClient.baseCFrames = {} :: { [Model]: CFrame }
 BrainrotServiceClient.lastDeposit = 0
+BrainrotServiceClient.isInDepositZone = false
 
 function BrainrotServiceClient.init(self: BrainrotServiceClient)
 	self:_setupAnimation()
@@ -56,7 +58,7 @@ function BrainrotServiceClient._setupAnimation(self: BrainrotServiceClient)
 end
 
 function BrainrotServiceClient._setupDepositZone(self: BrainrotServiceClient)
-	local function connectDeposit(zone: Instance)
+	local function connectZone(zone: Instance)
 		if not zone:IsA("BasePart") then
 			return
 		end
@@ -66,27 +68,52 @@ function BrainrotServiceClient._setupDepositZone(self: BrainrotServiceClient)
 			if not character then
 				return
 			end
-
 			local player = Players:GetPlayerFromCharacter(character)
 			if player ~= Players.LocalPlayer then
 				return
 			end
+			self.isInDepositZone = true
+		end)
 
-			local now = tick()
-			if (now - self.lastDeposit) < DEPOSIT_DEBOUNCE then
+		zone.TouchEnded:Connect(function(hit: BasePart)
+			local character = hit.Parent
+			if not character then
 				return
 			end
-			self.lastDeposit = now
-
-			PlayerDataServiceClient:depositBrainrots()
+			local player = Players:GetPlayerFromCharacter(character)
+			if player ~= Players.LocalPlayer then
+				return
+			end
+			self.isInDepositZone = false
 		end)
 	end
 
 	for _, zone in CollectionService:GetTagged(DEPOSIT_TAG) do
-		connectDeposit(zone)
+		connectZone(zone)
 	end
 
-	CollectionService:GetInstanceAddedSignal(DEPOSIT_TAG):Connect(connectDeposit)
+	CollectionService:GetInstanceAddedSignal(DEPOSIT_TAG):Connect(connectZone)
+
+	-- Нажатие E для сдачи одного brainrot'а
+	UserInputService.InputBegan:Connect(function(input: InputObject, gameProcessed: boolean)
+		if gameProcessed then
+			return
+		end
+		if input.KeyCode ~= Enum.KeyCode.E then
+			return
+		end
+		if not self.isInDepositZone then
+			return
+		end
+
+		local now = tick()
+		if (now - self.lastDeposit) < DEPOSIT_DEBOUNCE then
+			return
+		end
+		self.lastDeposit = now
+
+		PlayerDataServiceClient:depositOneBrainrot()
+	end)
 end
 
 export type BrainrotServiceClient = typeof(BrainrotServiceClient)

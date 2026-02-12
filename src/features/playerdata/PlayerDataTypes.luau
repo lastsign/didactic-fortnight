@@ -3,6 +3,7 @@ local PlayerDataTypes = {}
 export type BrainrotEntry = {
 	id: number,
 	slot: number,
+	level: number,
 }
 
 export type ProfileData = {

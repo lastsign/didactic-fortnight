@@ -23,10 +23,14 @@ PlayerDataServiceServer.profileStore = nil :: any
 PlayerDataServiceServer.profiles = {} :: { [Player]: any }
 PlayerDataServiceServer.carryInventory = {} :: { [Player]: { number } }
 PlayerDataServiceServer.networker = (nil :: any) :: Networker.Server
+PlayerDataServiceServer.onBrainrotDeposited = nil :: ((player: Player, brainrotId: number, slot: number) -> ())?
+PlayerDataServiceServer.onBrainrotRemoved = nil :: ((player: Player, slot: number) -> ())?
+PlayerDataServiceServer.onBrainrotUpgraded = nil :: ((player: Player, brainrotId: number, slot: number, newLevel: number) -> ())?
+PlayerDataServiceServer.onProfileLoaded = nil :: ((player: Player) -> ())?
 
 function PlayerDataServiceServer.init(self: PlayerDataServiceServer)
 	self.profileStore = ProfileService.GetProfileStore("PlayerData", PROFILE_TEMPLATE)
-	self.networker = Networker.server.new("PlayerDataService", self, { self.depositBrainrots })
+	self.networker = Networker.server.new("PlayerDataService", self, { self.depositOneBrainrot, self.upgradeBrainrot })
 
 	Players.PlayerAdded:Connect(function(player)
 		self:_loadProfile(player)
@@ -75,7 +79,18 @@ function PlayerDataServiceServer._loadProfile(self: PlayerDataServiceServer, pla
 	self.profiles[player] = profile
 	self.carryInventory[player] = {}
 
+	-- Миграция: добавить level = 1 для старых записей
+	for _, entry in profile.Data.Inventory do
+		if entry.level == nil then
+			entry.level = 1
+		end
+	end
+
 	self:_syncToClient(player)
+
+	if self.onProfileLoaded then
+		self.onProfileLoaded(player)
+	end
 end
 
 -- Освобождение профиля при выходе
@@ -102,10 +117,8 @@ function PlayerDataServiceServer._incomeLoop(self: PlayerDataServiceServer)
 			local totalIncome = 0
 
 			for _, entry in data.Inventory do
-				local brainrot = GameConfig.getBrainrot(entry.id)
-				if brainrot then
-					totalIncome += brainrot.incomePerSec
-				end
+				local level = entry.level or 1
+				totalIncome += GameConfig.getIncomeForLevel(entry.id, level)
 			end
 
 			local prestigeMultiplier = 1 + (data.PrestigeLevel * GameConfig.PRESTIGE_BONUS_PER_LEVEL)
@@ -142,10 +155,8 @@ function PlayerDataServiceServer._syncToClient(self: PlayerDataServiceServer, pl
 	-- Рассчитать текущий доход
 	local totalIncome = 0
 	for _, entry in data.Inventory do
-		local brainrot = GameConfig.getBrainrot(entry.id)
-		if brainrot then
-			totalIncome += brainrot.incomePerSec
-		end
+		local level = entry.level or 1
+		totalIncome += GameConfig.getIncomeForLevel(entry.id, level)
 	end
 	local prestigeMultiplier = 1 + (data.PrestigeLevel * GameConfig.PRESTIGE_BONUS_PER_LEVEL)
 	totalIncome = math.floor(totalIncome * prestigeMultiplier)
@@ -227,13 +238,17 @@ function PlayerDataServiceServer.addBrainrotToInventory(
 		return false
 	end
 
-	table.insert(data.Inventory, { id = brainrotId, slot = freeSlot })
+	table.insert(data.Inventory, { id = brainrotId, slot = freeSlot, level = 1 })
 
 	self.networker:set(player, "inventory", data.Inventory)
 	self.networker:set(player, "inventoryCount", #data.Inventory)
 
 	-- Пересчитать доход
 	self:_syncIncomeToClient(player)
+
+	if self.onBrainrotDeposited then
+		self.onBrainrotDeposited(player, brainrotId, freeSlot)
+	end
 
 	return true
 end
@@ -259,6 +274,10 @@ function PlayerDataServiceServer.removeBrainrotFromInventory(
 	self.networker:set(player, "inventory", data.Inventory)
 	self.networker:set(player, "inventoryCount", #data.Inventory)
 	self:_syncIncomeToClient(player)
+
+	if self.onBrainrotRemoved then
+		self.onBrainrotRemoved(player, slot)
+	end
 end
 
 function PlayerDataServiceServer.addToCarry(
@@ -298,7 +317,68 @@ end
 -- Клиентские методы (Networker clientAccess)
 ------------------------------------------------------------------------
 
--- Сдать brainrot'ов с рук на плот
+-- Сдать одного brainrot'а с рук на плот
+function PlayerDataServiceServer.depositOneBrainrot(self: PlayerDataServiceServer, player: Player)
+	local profile = self.profiles[player]
+	if not profile then
+		return
+	end
+
+	local carry = self.carryInventory[player]
+	if not carry or #carry == 0 then
+		return
+	end
+
+	local data = profile.Data
+	if #data.Inventory >= data.PlotCapacity then
+		return
+	end
+
+	local brainrotId = table.remove(carry, 1)
+	self.networker:set(player, "carryCount", #carry)
+	self:addBrainrotToInventory(player, brainrotId)
+end
+
+-- Улучшить brainrot'а на плоте
+function PlayerDataServiceServer.upgradeBrainrot(self: PlayerDataServiceServer, player: Player, slot: number)
+	local profile = self.profiles[player]
+	if not profile then
+		return
+	end
+
+	local data = profile.Data
+	local entry = nil
+	for _, e in data.Inventory do
+		if e.slot == slot then
+			entry = e
+			break
+		end
+	end
+
+	if not entry then
+		return
+	end
+
+	if (entry.level or 1) >= GameConfig.UPGRADE_MAX_LEVEL then
+		return
+	end
+
+	local cost = GameConfig.getUpgradeCost(entry.id, entry.level or 1)
+	if not self:removeCoins(player, cost) then
+		return
+	end
+
+	entry.level = (entry.level or 1) + 1
+
+	self.networker:set(player, "inventory", data.Inventory)
+	self:_syncIncomeToClient(player)
+
+	if self.onBrainrotUpgraded then
+		self.onBrainrotUpgraded(player, entry.id, slot, entry.level)
+	end
+end
+
+-- Сдать всех brainrot'ов (внутренний API)
 function PlayerDataServiceServer.depositBrainrots(self: PlayerDataServiceServer, player: Player)
 	local profile = self.profiles[player]
 	if not profile then
@@ -325,6 +405,19 @@ end
 -- Утилиты
 ------------------------------------------------------------------------
 
+function PlayerDataServiceServer.getInventoryEntry(self: PlayerDataServiceServer, player: Player, slot: number)
+	local profile = self.profiles[player]
+	if not profile then
+		return nil
+	end
+	for _, entry in profile.Data.Inventory do
+		if entry.slot == slot then
+			return entry
+		end
+	end
+	return nil
+end
+
 function PlayerDataServiceServer._syncIncomeToClient(self: PlayerDataServiceServer, player: Player)
 	local profile = self.profiles[player]
 	if not profile then
@@ -334,10 +427,8 @@ function PlayerDataServiceServer._syncIncomeToClient(self: PlayerDataServiceServ
 	local data = profile.Data
 	local totalIncome = 0
 	for _, entry in data.Inventory do
-		local brainrot = GameConfig.getBrainrot(entry.id)
-		if brainrot then
-			totalIncome += brainrot.incomePerSec
-		end
+		local level = entry.level or 1
+		totalIncome += GameConfig.getIncomeForLevel(entry.id, level)
 	end
 
 	local prestigeMultiplier = 1 + (data.PrestigeLevel * GameConfig.PRESTIGE_BONUS_PER_LEVEL)

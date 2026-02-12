@@ -77,6 +77,21 @@
               "$path": "src/services/ExampleService/Utils.luau"
             }
           }
+        },
+        "__tests__": {
+          "$className": "Folder",
+          "BrainrotService.spec": {
+            "$path": "src/__tests__/BrainrotService.spec.luau"
+          },
+          "GameConfig.spec": {
+            "$path": "src/__tests__/GameConfig.spec.luau"
+          },
+          "jest.config": {
+            "$path": "src/__tests__/jest.config.luau"
+          },
+          "PlayerDataService.spec": {
+            "$path": "src/__tests__/PlayerDataService.spec.luau"
+          }
         }
       },
       "Packages": {
