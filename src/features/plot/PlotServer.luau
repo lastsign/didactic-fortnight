@@ -12,6 +12,9 @@ local RESPAWN_DELAY = 5
 local PlotServer = {}
 PlotServer.__index = PlotServer
 
+PlotServer.onPlayerDied = nil :: ((player: Player) -> ())?
+PlotServer.spawnTimes = {} :: { [Player]: number }
+
 function PlotServer.new(plotSpawn: PlotTypes.PlotSpawn, player: Player): Plot
 	local self = setmetatable({}, PlotServer)
 	self.player = player
@@ -125,9 +128,13 @@ end
 function PlotServer._initCharacterSpawning(self: Plot)
 	self.janitor:Add(self.player.CharacterAdded:Connect(function(character: Model)
 		character:PivotTo(self.cf * CHAR_SPAWN_OFFSET)
+		PlotServer.spawnTimes[self.player] = os.clock()
 
 		local humanoid = character:WaitForChild("Humanoid") :: Humanoid
 		humanoid.Died:Connect(function()
+			if PlotServer.onPlayerDied then
+				PlotServer.onPlayerDied(self.player)
+			end
 			task.wait(RESPAWN_DELAY)
 			if self.player.Parent then
 				self.player:LoadCharacterAsync()
@@ -142,17 +149,21 @@ function PlotServer._initCharacterSpawning(self: Plot)
 end
 
 function PlotServer.destroy(self: Plot)
+	PlotServer.spawnTimes[self.player] = nil
 	self.janitor:Destroy()
 end
 
-export type Plot = typeof(setmetatable({} :: {
-	player: Player,
-	cf: CFrame,
-	index: number,
-	plotModel: Model,
-	janitor: Janitor.Janitor,
-	slotPositions: { [number]: BasePart },
-	placedModels: { [number]: Model },
-}, PlotServer))
+export type Plot = typeof(setmetatable(
+	{} :: {
+		player: Player,
+		cf: CFrame,
+		index: number,
+		plotModel: Model,
+		janitor: Janitor.Janitor,
+		slotPositions: { [number]: BasePart },
+		placedModels: { [number]: Model },
+	},
+	PlotServer
+))
 
 return PlotServer

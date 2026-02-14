@@ -24,6 +24,21 @@
             },
             "BrainrotServiceClient": {
               "$path": "src/features/brainrot/BrainrotServiceClient.luau"
+            },
+            "UpgradeButton": {
+              "$path": "src/features/brainrot/UpgradeButton.luau"
+            }
+          },
+          "Cataclysm": {
+            "$className": "Folder",
+            "CataclysmServiceClient": {
+              "$path": "src/features/cataclysm/CataclysmServiceClient.luau"
+            },
+            "CataclysmWarning": {
+              "$path": "src/features/cataclysm/CataclysmWarning.luau"
+            },
+            "DroppedBrainrot": {
+              "$path": "src/features/cataclysm/DroppedBrainrot.luau"
             }
           },
           "Hud": {
@@ -45,6 +60,21 @@
             "$className": "Folder",
             "PlotTypes": {
               "$path": "src/features/plot/PlotTypes.luau"
+            }
+          },
+          "Pvp": {
+            "$className": "Folder",
+            "PvPServiceClient": {
+              "$path": "src/features/pvp/PvPServiceClient.luau"
+            }
+          },
+          "Upgrade": {
+            "$className": "Folder",
+            "ShopApp": {
+              "$path": "src/features/upgrade/ShopApp.luau"
+            },
+            "UpgradeServiceClient": {
+              "$path": "src/features/upgrade/UpgradeServiceClient.luau"
             }
           }
         },
@@ -83,6 +113,9 @@
           "BrainrotService.spec": {
             "$path": "src/__tests__/BrainrotService.spec.luau"
           },
+          "CataclysmService.spec": {
+            "$path": "src/__tests__/CataclysmService.spec.luau"
+          },
           "GameConfig.spec": {
             "$path": "src/__tests__/GameConfig.spec.luau"
           },
@@ -91,6 +124,12 @@
           },
           "PlayerDataService.spec": {
             "$path": "src/__tests__/PlayerDataService.spec.luau"
+          },
+          "PvPService.spec": {
+            "$path": "src/__tests__/PvPService.spec.luau"
+          },
+          "UpgradeService.spec": {
+            "$path": "src/__tests__/UpgradeService.spec.luau"
           }
         }
       },
@@ -110,6 +149,12 @@
             "$path": "src/features/brainrot/BrainrotServiceServer.luau"
           }
         },
+        "Cataclysm": {
+          "$className": "Folder",
+          "CataclysmServiceServer": {
+            "$path": "src/features/cataclysm/CataclysmServiceServer.luau"
+          }
+        },
         "Playerdata": {
           "$className": "Folder",
           "PlayerDataServiceServer": {
@@ -125,10 +170,22 @@
             "$path": "src/features/plot/PlotServiceServer.luau"
           }
         },
+        "Pvp": {
+          "$className": "Folder",
+          "PvPServiceServer": {
+            "$path": "src/features/pvp/PvPServiceServer.luau"
+          }
+        },
         "Spawn": {
           "$className": "Folder",
           "SpawnServiceServer": {
             "$path": "src/features/spawn/SpawnServiceServer.luau"
+          }
+        },
+        "Upgrade": {
+          "$className": "Folder",
+          "UpgradeServiceServer": {
+            "$path": "src/features/upgrade/UpgradeServiceServer.luau"
           }
         }
       },

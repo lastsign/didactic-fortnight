@@ -24,6 +24,9 @@
             },
             "BrainrotServiceClient": {
               "$path": "src/features/brainrot/BrainrotServiceClient.luau"
+            },
+            "UpgradeButton": {
+              "$path": "src/features/brainrot/UpgradeButton.luau"
             }
           },
           "Hud": {
@@ -45,6 +48,33 @@
             "$className": "Folder",
             "PlotTypes": {
               "$path": "src/features/plot/PlotTypes.luau"
+            }
+          },
+          "Upgrade": {
+            "$className": "Folder",
+            "UpgradeServiceClient": {
+              "$path": "src/features/upgrade/UpgradeServiceClient.luau"
+            },
+            "ShopApp": {
+              "$path": "src/features/upgrade/ShopApp.luau"
+            }
+          },
+          "Cataclysm": {
+            "$className": "Folder",
+            "CataclysmServiceClient": {
+              "$path": "src/features/cataclysm/CataclysmServiceClient.luau"
+            },
+            "CataclysmWarning": {
+              "$path": "src/features/cataclysm/CataclysmWarning.luau"
+            },
+            "DroppedBrainrot": {
+              "$path": "src/features/cataclysm/DroppedBrainrot.luau"
+            }
+          },
+          "Pvp": {
+            "$className": "Folder",
+            "PvPServiceClient": {
+              "$path": "src/features/pvp/PvPServiceClient.luau"
             }
           }
         },
@@ -96,6 +126,24 @@
           "$className": "Folder",
           "SpawnServiceServer": {
             "$path": "src/features/spawn/SpawnServiceServer.luau"
+          }
+        },
+        "Upgrade": {
+          "$className": "Folder",
+          "UpgradeServiceServer": {
+            "$path": "src/features/upgrade/UpgradeServiceServer.luau"
+          }
+        },
+        "Cataclysm": {
+          "$className": "Folder",
+          "CataclysmServiceServer": {
+            "$path": "src/features/cataclysm/CataclysmServiceServer.luau"
+          }
+        },
+        "Pvp": {
+          "$className": "Folder",
+          "PvPServiceServer": {
+            "$path": "src/features/pvp/PvPServiceServer.luau"
           }
         }
       },

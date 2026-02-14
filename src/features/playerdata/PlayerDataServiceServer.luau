@@ -151,6 +151,10 @@ function PlayerDataServiceServer._syncToClient(self: PlayerDataServiceServer, pl
 	self.networker:set(player, "plotCapacity", data.PlotCapacity)
 	self.networker:set(player, "carryCount", #carry)
 	self.networker:set(player, "carryCapacity", data.CarryCapacity)
+	self.networker:set(player, "speedLevel", data.SpeedLevel)
+	self.networker:set(player, "prestigeLevel", data.PrestigeLevel)
+	self.networker:set(player, "jumpLevel", data.JumpLevel)
+	self.networker:set(player, "totalEarnings", data.TotalEarnings)
 
 	-- Рассчитать текущий доход
 	local totalIncome = 0

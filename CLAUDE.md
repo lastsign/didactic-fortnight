@@ -124,3 +124,18 @@ Every feature should have tests covering:
 - **GameConfig/data tables** — completeness, valid values, relationships
 - **Pure logic** — calculations, algorithms, utility functions
 - **Service API** — public methods behavior (may need mocking for Roblox services)
+
+## MCP Tools — Roblox Studio
+
+This project has a `robloxstudio` MCP server configured (`mcp-config.json`). When Rojo is serving and Studio is connected, you can interact with the live game directly:
+
+- **Read/write instance properties** — `get_instance_properties`, `set_property`, `mass_set_property`
+- **Create/delete objects** — `create_object`, `create_object_with_properties`, `delete_object`, `smart_duplicate`
+- **Script editing** — `get_script_source`, `set_script_source`, `edit_script_lines`, `insert_script_lines`
+- **Search instances** — `search_objects`, `search_files`, `get_instance_children`
+- **Project structure** — `get_project_structure`, `get_services`, `get_file_tree`
+- **Attributes & tags** — `get_attribute`, `set_attribute`, `add_tag`, `get_tagged`
+- **Execute Luau** — `execute_luau` runs arbitrary code in the plugin context
+- **Playtesting** — `start_playtest`, `get_playtest_output`, `stop_playtest`
+
+Use these tools when you need to inspect or modify the live Studio state (e.g., checking instance hierarchy, setting up spawn points, running test code).

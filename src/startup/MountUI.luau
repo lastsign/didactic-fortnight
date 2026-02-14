@@ -8,7 +8,7 @@ local HudApp = require(ReplicatedStorage.Source.Features.Hud.HudApp)
 
 local MountUI = {}
 
-function MountUI.init(self: typeof(MountUI), playerDataClient: any)
+function MountUI.init(self: typeof(MountUI), playerDataClient: any, upgradeClient: any, cataclysmClient: any)
 	local player = Players.LocalPlayer
 	local playerGui = player:WaitForChild("PlayerGui")
 
@@ -19,7 +19,11 @@ function MountUI.init(self: typeof(MountUI), playerDataClient: any)
 	screenGui.Parent = playerGui
 
 	local root = ReactRoblox.createRoot(screenGui)
-	root:render(React.createElement(HudApp, { playerDataClient = playerDataClient }))
+	root:render(React.createElement(HudApp, {
+		playerDataClient = playerDataClient,
+		upgradeClient = upgradeClient,
+		cataclysmClient = cataclysmClient,
+	}))
 end
 
 return MountUI
