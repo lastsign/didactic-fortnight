@@ -22,6 +22,8 @@ GameConfig.UPGRADE_BASE_COST = 50
 GameConfig.UPGRADE_COST_MULTIPLIER = 1.5
 GameConfig.UPGRADE_INCOME_MULTIPLIER = 0.5
 
+GameConfig.SELL_PRICE_MULTIPLIER = 100
+
 GameConfig.RarityConfig = {
 	Common = { weight = 10, respawnTime = 30, color = Color3.fromRGB(200, 200, 200) },
 	Uncommon = { weight = 5, respawnTime = 45, color = Color3.fromRGB(0, 200, 0) },
@@ -202,6 +204,11 @@ function GameConfig.getIncomeForLevel(brainrotId: number, level: number): number
 	end
 
 	return brainrot.incomePerSec * (1 + (level - 1) * GameConfig.UPGRADE_INCOME_MULTIPLIER)
+end
+
+function GameConfig.getSellPrice(brainrotId: number, level: number): number
+	local income = GameConfig.getIncomeForLevel(brainrotId, level)
+	return math.floor(income * GameConfig.SELL_PRICE_MULTIPLIER)
 end
 
 return GameConfig

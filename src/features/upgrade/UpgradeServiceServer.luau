@@ -13,7 +13,7 @@ function UpgradeServiceServer.init(self: UpgradeServiceServer, playerDataService
 	self.networker = Networker.server.new(
 		"UpgradeService",
 		self,
-		{ self.buySpeed, self.buyCarryCapacity, self.buyPlotCapacity, self.prestige }
+		{ self.buySpeed, self.buyCarryCapacity, self.buyPlotCapacity, self.prestige, self.sellCarryBrainrot, self.sellAllCarry }
 	)
 
 	-- Применить статы при респавне персонажа
@@ -142,6 +142,17 @@ function UpgradeServiceServer.prestige(self: UpgradeServiceServer, player: Playe
 	-- Синхронизация всех данных
 	self.playerDataService:_syncToClient(player)
 	self:_applyStats(player)
+end
+
+function UpgradeServiceServer.sellCarryBrainrot(self: UpgradeServiceServer, player: Player, index: number)
+	if type(index) ~= "number" then
+		return
+	end
+	self.playerDataService:sellCarryBrainrot(player, index)
+end
+
+function UpgradeServiceServer.sellAllCarry(self: UpgradeServiceServer, player: Player)
+	self.playerDataService:sellAllCarry(player)
 end
 
 export type UpgradeServiceServer = typeof(UpgradeServiceServer)

@@ -8,6 +8,7 @@ PlayerDataServiceClient.inventory = {}
 PlayerDataServiceClient.inventoryCount = 0
 PlayerDataServiceClient.plotCapacity = 5
 PlayerDataServiceClient.carryCount = 0
+PlayerDataServiceClient.carryInventory = {}
 PlayerDataServiceClient.carryCapacity = 3
 PlayerDataServiceClient.incomePerSec = 0
 PlayerDataServiceClient.networker = (nil :: any) :: Networker.Client
@@ -22,6 +23,10 @@ end
 
 function PlayerDataServiceClient.upgradeBrainrot(self: PlayerDataServiceClient, slot: number)
 	self.networker:fire("upgradeBrainrot", slot)
+end
+
+function PlayerDataServiceClient.pickupFromPlot(self: PlayerDataServiceClient, slot: number)
+	self.networker:fire("pickupFromPlot", slot)
 end
 
 export type PlayerDataServiceClient = typeof(PlayerDataServiceClient)

@@ -25,6 +25,14 @@ function UpgradeServiceClient.prestige(self: UpgradeServiceClient)
 	self.networker:fire("prestige")
 end
 
+function UpgradeServiceClient.sellCarryBrainrot(self: UpgradeServiceClient, index: number)
+	self.networker:fire("sellCarryBrainrot", index)
+end
+
+function UpgradeServiceClient.sellAllCarry(self: UpgradeServiceClient)
+	self.networker:fire("sellAllCarry")
+end
+
 export type UpgradeServiceClient = typeof(UpgradeServiceClient)
 
 return UpgradeServiceClient

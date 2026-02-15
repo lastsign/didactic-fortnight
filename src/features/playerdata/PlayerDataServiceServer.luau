@@ -10,6 +10,7 @@ local GameConfig = require(ReplicatedStorage.Source.Game.GameConfig)
 local PROFILE_TEMPLATE = {
 	Coins = 0,
 	Inventory = {},
+	CarryInventory = {},
 	SpeedLevel = 1,
 	PrestigeLevel = 0,
 	JumpLevel = 1,
@@ -21,16 +22,17 @@ local PROFILE_TEMPLATE = {
 local PlayerDataServiceServer = {}
 PlayerDataServiceServer.profileStore = nil :: any
 PlayerDataServiceServer.profiles = {} :: { [Player]: any }
-PlayerDataServiceServer.carryInventory = {} :: { [Player]: { number } }
+-- carryInventory is now stored in profile.Data.CarryInventory as { {id: number, level: number} }
 PlayerDataServiceServer.networker = (nil :: any) :: Networker.Server
 PlayerDataServiceServer.onBrainrotDeposited = nil :: ((player: Player, brainrotId: number, slot: number) -> ())?
 PlayerDataServiceServer.onBrainrotRemoved = nil :: ((player: Player, slot: number) -> ())?
 PlayerDataServiceServer.onBrainrotUpgraded = nil :: ((player: Player, brainrotId: number, slot: number, newLevel: number) -> ())?
+PlayerDataServiceServer.onBrainrotSold = nil :: ((player: Player, brainrotId: number, slot: number, price: number) -> ())?
 PlayerDataServiceServer.onProfileLoaded = nil :: ((player: Player) -> ())?
 
 function PlayerDataServiceServer.init(self: PlayerDataServiceServer)
 	self.profileStore = ProfileService.GetProfileStore("PlayerData", PROFILE_TEMPLATE)
-	self.networker = Networker.server.new("PlayerDataService", self, { self.depositOneBrainrot, self.upgradeBrainrot })
+	self.networker = Networker.server.new("PlayerDataService", self, { self.depositOneBrainrot, self.upgradeBrainrot, self.pickupFromPlot })
 
 	Players.PlayerAdded:Connect(function(player)
 		self:_loadProfile(player)
@@ -150,6 +152,7 @@ function PlayerDataServiceServer._syncToClient(self: PlayerDataServiceServer, pl
 	self.networker:set(player, "inventoryCount", #data.Inventory)
 	self.networker:set(player, "plotCapacity", data.PlotCapacity)
 	self.networker:set(player, "carryCount", #carry)
+	self.networker:set(player, "carryInventory", carry)
 	self.networker:set(player, "carryCapacity", data.CarryCapacity)
 	self.networker:set(player, "speedLevel", data.SpeedLevel)
 	self.networker:set(player, "prestigeLevel", data.PrestigeLevel)
@@ -191,6 +194,16 @@ function PlayerDataServiceServer.addCoins(self: PlayerDataServiceServer, player:
 
 	profile.Data.Coins += amount
 	profile.Data.TotalEarnings += amount
+	self.networker:set(player, "coins", profile.Data.Coins)
+end
+
+function PlayerDataServiceServer.addCoinsFromSale(self: PlayerDataServiceServer, player: Player, amount: number)
+	local profile = self.profiles[player]
+	if not profile then
+		return
+	end
+
+	profile.Data.Coins += amount
 	self.networker:set(player, "coins", profile.Data.Coins)
 end
 
@@ -305,6 +318,7 @@ function PlayerDataServiceServer.addToCarry(
 
 	table.insert(carry, brainrotId)
 	self.networker:set(player, "carryCount", #carry)
+	self.networker:set(player, "carryInventory", carry)
 	return true
 end
 
@@ -315,6 +329,7 @@ end
 function PlayerDataServiceServer.clearCarry(self: PlayerDataServiceServer, player: Player)
 	self.carryInventory[player] = {}
 	self.networker:set(player, "carryCount", 0)
+	self.networker:set(player, "carryInventory", {})
 end
 
 ------------------------------------------------------------------------
@@ -340,6 +355,7 @@ function PlayerDataServiceServer.depositOneBrainrot(self: PlayerDataServiceServe
 
 	local brainrotId = table.remove(carry, 1)
 	self.networker:set(player, "carryCount", #carry)
+	self.networker:set(player, "carryInventory", carry)
 	self:addBrainrotToInventory(player, brainrotId)
 end
 
@@ -403,6 +419,81 @@ function PlayerDataServiceServer.depositBrainrots(self: PlayerDataServiceServer,
 	end
 
 	self:clearCarry(player)
+end
+
+------------------------------------------------------------------------
+-- Забрать с плота в руки
+------------------------------------------------------------------------
+
+function PlayerDataServiceServer.pickupFromPlot(self: PlayerDataServiceServer, player: Player, slot: number)
+	local profile = self.profiles[player]
+	if not profile then
+		return
+	end
+
+	local carry = self.carryInventory[player]
+	if not carry then
+		return
+	end
+
+	if #carry >= profile.Data.CarryCapacity then
+		return
+	end
+
+	local entry = self:getInventoryEntry(player, slot)
+	if not entry then
+		return
+	end
+
+	local brainrotId = entry.id
+	self:removeBrainrotFromInventory(player, slot)
+	table.insert(carry, brainrotId)
+	self.networker:set(player, "carryCount", #carry)
+	self.networker:set(player, "carryInventory", carry)
+end
+
+------------------------------------------------------------------------
+-- Продажа
+------------------------------------------------------------------------
+
+function PlayerDataServiceServer.sellCarryBrainrot(self: PlayerDataServiceServer, player: Player, index: number)
+	local profile = self.profiles[player]
+	if not profile then
+		return
+	end
+
+	local carry = self.carryInventory[player]
+	if not carry or index < 1 or index > #carry then
+		return
+	end
+
+	local brainrotId = carry[index]
+	local price = GameConfig.getSellPrice(brainrotId, 1)
+
+	table.remove(carry, index)
+	self.networker:set(player, "carryCount", #carry)
+	self.networker:set(player, "carryInventory", carry)
+	self:addCoinsFromSale(player, price)
+
+	if self.onBrainrotSold then
+		self.onBrainrotSold(player, brainrotId, index, price)
+	end
+end
+
+function PlayerDataServiceServer.sellAllCarry(self: PlayerDataServiceServer, player: Player)
+	local profile = self.profiles[player]
+	if not profile then
+		return
+	end
+
+	local carry = self.carryInventory[player]
+	if not carry then
+		return
+	end
+
+	while #carry > 0 do
+		self:sellCarryBrainrot(player, 1)
+	end
 end
 
 ------------------------------------------------------------------------
