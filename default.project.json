@@ -79,7 +79,10 @@
           }
         },
         "Core": {
-          "$className": "Folder"
+          "$className": "Folder",
+          "UITheme": {
+            "$path": "src/core/UITheme.luau"
+          }
         },
         "Game": {
           "$className": "Folder",
@@ -127,6 +130,9 @@
           },
           "PvPService.spec": {
             "$path": "src/__tests__/PvPService.spec.luau"
+          },
+          "ShopService.spec": {
+            "$path": "src/__tests__/ShopService.spec.luau"
           },
           "UpgradeService.spec": {
             "$path": "src/__tests__/UpgradeService.spec.luau"
